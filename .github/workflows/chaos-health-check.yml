@@ -1,0 +1,83 @@
+name: Chaos Health Oracle
+
+on:
+  schedule:
+    - cron: "*/30 9-18 * * 1-5"
+  workflow_dispatch:
+
+env:
+  MIMIR_URL: http://mimir.monitoring.svc:9009
+
+jobs:
+  health-check:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check pod readiness
+        id: pods
+        run: |
+          RATIO=$(curl -sf "${MIMIR_URL}/prometheus/api/v1/query" \
+            --data-urlencode 'query=
+              sum(kube_pod_status_ready{namespace="mathtrail",condition="true"})
+              /
+              sum(kube_pod_status_ready{namespace="mathtrail"})
+            ' | jq -r '.data.result[0].value[1] // "1"')
+
+          echo "ratio=${RATIO}" >> "$GITHUB_OUTPUT"
+          if (( $(echo "$RATIO < 0.8" | bc -l) )); then
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Pod readiness ${RATIO} < 0.8"
+          else
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check Dapr error rate
+        id: dapr
+        run: |
+          ERROR_RATE=$(curl -sf "${MIMIR_URL}/prometheus/api/v1/query" \
+            --data-urlencode 'query=
+              sum(rate(dapr_http_server_request_count{namespace="mathtrail",status=~"5.."}[5m]))
+              /
+              sum(rate(dapr_http_server_request_count{namespace="mathtrail"}[5m]))
+            ' | jq -r '.data.result[0].value[1] // "0"')
+
+          echo "error_rate=${ERROR_RATE}" >> "$GITHUB_OUTPUT"
+          if (( $(echo "$ERROR_RATE > 0.05" | bc -l) )); then
+            echo "healthy=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Dapr 5xx rate ${ERROR_RATE} > 5%"
+          else
+            echo "healthy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pause chaos if unhealthy
+        if: steps.pods.outputs.healthy == 'false' || steps.dapr.outputs.healthy == 'false'
+        run: |
+          echo "Pausing all chaos experiments..."
+          kubectl annotate schedule --all \
+            experiment.chaos-mesh.org/pause=true \
+            -n mathtrail --overwrite
+
+      - name: Create incident PR
+        if: steps.pods.outputs.healthy == 'false' || steps.dapr.outputs.healthy == 'false'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chaos/health-alert
+          title: "[Chaos] Health degraded — experiments paused"
+          body: |
+            ## Chaos Health Alert
+
+            | Metric | Value | Threshold |
+            |--------|-------|-----------|
+            | Pod readiness | ${{ steps.pods.outputs.ratio }} | >= 0.8 |
+            | Dapr 5xx rate | ${{ steps.dapr.outputs.error_rate }} | <= 0.05 |
+
+            ### Auto-actions
+            - All chaos Schedule resources paused via annotation
+
+            ### Manual steps
+            1. Investigate service logs and Grafana dashboards
+            2. Fix root cause or adjust experiment parameters
+            3. Resume experiments: `kubectl annotate schedule --all experiment.chaos-mesh.org/pause- -n mathtrail`
+          labels: chaos,incident

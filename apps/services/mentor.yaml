@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-mentor
+  namespace: argocd
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://RyazanovAlexander.github.io/mathtrail-charts/charts
+    chart: mathtrail-mentor
+    targetRevision: 0.1.0
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mathtrail
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

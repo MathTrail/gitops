@@ -1,0 +1,14 @@
+# On-prem value overrides for mathtrail-mentor
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-mentor
+  namespace: argocd
+spec:
+  source:
+    helm:
+      parameters:
+        - name: resources.requests.cpu
+          value: "250m"
+        - name: resources.requests.memory
+          value: "256Mi"

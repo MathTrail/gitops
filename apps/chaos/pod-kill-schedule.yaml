@@ -1,0 +1,23 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Schedule
+metadata:
+  name: mathtrail-pod-kill
+  namespace: mathtrail
+  labels:
+    app.kubernetes.io/part-of: mathtrail
+    mathtrail.io/chaos-tier: "1"
+spec:
+  schedule: "0 * * * 1-5"
+  historyLimit: 5
+  concurrencyPolicy: Forbid
+  type: PodChaos
+  podChaos:
+    action: pod-kill
+    mode: one
+    selector:
+      namespaces:
+        - mathtrail
+      labelSelectors:
+        app.kubernetes.io/part-of: mathtrail
+    gracePeriod: 30
+    duration: "30s"

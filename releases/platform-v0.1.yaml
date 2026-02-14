@@ -1,0 +1,9 @@
+services:
+  profile: 0.1.0
+  mentor: 0.1.0
+  identity: 0.1.0
+  task: 0.1.0
+  llm-taskgen: 0.1.0
+  solution-validator: 0.1.0
+  ui-web: 0.1.0
+  ui-chatgpt: 0.1.0

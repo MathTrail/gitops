@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: chaos-experiments
+  namespace: argocd
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://github.com/RyazanovAlexander/mathtrail-gitops
+    path: apps/chaos
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mathtrail
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
