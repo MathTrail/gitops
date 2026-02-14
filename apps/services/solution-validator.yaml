@@ -6,7 +6,7 @@ metadata:
 spec:
   project: mathtrail
   source:
-    repoURL: https://MathTrail.github.io/mathtrail-charts/charts
+    repoURL: https://MathTrail.github.io/charts/charts
     chart: mathtrail-solution-validator
     targetRevision: 0.1.0
     helm:

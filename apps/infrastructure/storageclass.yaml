@@ -6,7 +6,7 @@ metadata:
 spec:
   project: mathtrail
   source:
-    repoURL: https://github.com/MathTrail/mathtrail-gitops
+    repoURL: https://github.com/MathTrail/gitops
     path: environments/on-prem
     targetRevision: main
   destination:
