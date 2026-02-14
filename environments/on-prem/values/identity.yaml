@@ -1,0 +1,14 @@
+# On-prem value overrides for identity-ui
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-identity
+  namespace: argocd
+spec:
+  source:
+    helm:
+      parameters:
+        - name: resources.requests.cpu
+          value: "100m"
+        - name: resources.requests.memory
+          value: "64Mi"

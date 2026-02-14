@@ -1,0 +1,21 @@
+﻿apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-profile
+  namespace: argocd
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://MathTrail.github.io/charts/charts
+    chart: mathtrail-profile
+    targetRevision: 0.1.0
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mathtrail
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

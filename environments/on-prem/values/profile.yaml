@@ -1,0 +1,15 @@
+# On-prem value overrides for mathtrail-profile
+# Applied via Kustomize patch to ArgoCD Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-profile
+  namespace: argocd
+spec:
+  source:
+    helm:
+      parameters:
+        - name: externalSecrets.enabled
+          value: "true"
+        - name: externalSecrets.vaultPath
+          value: "secret/data/on-prem/mathtrail-profile"

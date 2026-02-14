@@ -1,0 +1,23 @@
+﻿apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dapr
+  namespace: argocd
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://MathTrail.github.io/charts/charts
+    chart: dapr
+    targetRevision: 1.14.4
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dapr-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
