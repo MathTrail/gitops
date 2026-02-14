@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+﻿apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: mathtrail-ui-web
@@ -6,7 +6,7 @@ metadata:
 spec:
   project: mathtrail
   source:
-    repoURL: https://RyazanovAlexander.github.io/mathtrail-charts/charts
+    repoURL: https://MathTrail.github.io/mathtrail-charts/charts
     chart: mathtrail-ui-web
     targetRevision: 0.1.0
     helm:

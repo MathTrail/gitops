@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+﻿apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: dapr
@@ -6,7 +6,7 @@ metadata:
 spec:
   project: mathtrail
   source:
-    repoURL: https://RyazanovAlexander.github.io/mathtrail-charts/charts
+    repoURL: https://MathTrail.github.io/mathtrail-charts/charts
     chart: dapr
     targetRevision: 1.14.4
     helm:
