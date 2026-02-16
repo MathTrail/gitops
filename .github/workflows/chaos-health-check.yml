@@ -10,7 +10,7 @@ env:
 
 jobs:
   health-check:
-    runs-on: self-hosted
+    runs-on: mathtrail-runners
     steps:
       - uses: actions/checkout@v4
 
