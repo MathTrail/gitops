@@ -10,8 +10,7 @@ env:
 
 jobs:
   health-check:
-    if: false # temporarily disabled
-    runs-on: mathtrail-runners
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
