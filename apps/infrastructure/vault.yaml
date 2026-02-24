@@ -1,3 +1,6 @@
+# Vault instance — deployed as a Bank-Vaults CR (kind: Vault).
+# The operator (vault-operator Application) must be healthy before this syncs.
+# Source: raw manifests from the infra repo (RBAC + PG creds Secret + Vault CR + ClusterSecretStores).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -6,15 +9,9 @@ metadata:
 spec:
   project: mathtrail
   source:
-    repoURL: https://helm.releases.hashicorp.com
-    chart: vault
-    targetRevision: 0.28.0
-    helm:
-      parameters:
-        - name: server.dev.enabled
-          value: "true"
-        - name: injector.enabled
-          value: "false"
+    repoURL: https://github.com/MathTrail/infra
+    targetRevision: HEAD
+    path: manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
