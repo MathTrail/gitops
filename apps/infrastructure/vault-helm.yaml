@@ -1,0 +1,32 @@
+# HashiCorp Vault Helm chart — HA Raft (3 replicas) + Kubernetes Seal.
+# Replaces the Bank-Vaults Operator + Vault CR approach.
+# sync-wave 1: must be fully running before vault-init (wave 2) can proceed.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: mathtrail
+  sources:
+    - repoURL: https://helm.releases.hashicorp.com
+      chart: vault
+      targetRevision: 0.28.1
+      helm:
+        valueFiles:
+          - $values/infra/values/vault-values.yaml
+    - repoURL: https://github.com/MathTrail/infra
+      targetRevision: HEAD
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
