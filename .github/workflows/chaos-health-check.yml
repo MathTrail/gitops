@@ -33,26 +33,26 @@ jobs:
             echo "healthy=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Check Dapr error rate
-        id: dapr
+      - name: Check HTTP error rate
+        id: http_errors
         run: |
           ERROR_RATE=$(curl -sf "${MIMIR_URL}/prometheus/api/v1/query" \
             --data-urlencode 'query=
-              sum(rate(dapr_http_server_request_count{namespace="mathtrail",status=~"5.."}[5m]))
+              sum(rate(http_server_request_duration_seconds_count{namespace="mathtrail",http_response_status_code=~"5.."}[5m]))
               /
-              sum(rate(dapr_http_server_request_count{namespace="mathtrail"}[5m]))
+              sum(rate(http_server_request_duration_seconds_count{namespace="mathtrail"}[5m]))
             ' | jq -r '.data.result[0].value[1] // "0"')
 
           echo "error_rate=${ERROR_RATE}" >> "$GITHUB_OUTPUT"
           if (( $(echo "$ERROR_RATE > 0.05" | bc -l) )); then
             echo "healthy=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Dapr 5xx rate ${ERROR_RATE} > 5%"
+            echo "::warning::HTTP 5xx rate ${ERROR_RATE} > 5%"
           else
             echo "healthy=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Pause chaos if unhealthy
-        if: steps.pods.outputs.healthy == 'false' || steps.dapr.outputs.healthy == 'false'
+        if: steps.pods.outputs.healthy == 'false' || steps.http_errors.outputs.healthy == 'false'
         run: |
           echo "Pausing all chaos experiments..."
           kubectl annotate schedule --all \
@@ -60,7 +60,7 @@ jobs:
             -n mathtrail --overwrite
 
       - name: Create incident PR
-        if: steps.pods.outputs.healthy == 'false' || steps.dapr.outputs.healthy == 'false'
+        if: steps.pods.outputs.healthy == 'false' || steps.http_errors.outputs.healthy == 'false'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -72,7 +72,7 @@ jobs:
             | Metric | Value | Threshold |
             |--------|-------|-----------|
             | Pod readiness | ${{ steps.pods.outputs.ratio }} | >= 0.8 |
-            | Dapr 5xx rate | ${{ steps.dapr.outputs.error_rate }} | <= 0.05 |
+            | HTTP 5xx rate | ${{ steps.http_errors.outputs.error_rate }} | <= 0.05 |
 
             ### Auto-actions
             - All chaos Schedule resources paused via annotation

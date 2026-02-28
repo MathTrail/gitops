@@ -1,0 +1,36 @@
+# Vault Config Operator (VCO) — Red Hat Community of Practice.
+# Manages Vault configuration declaratively via CRDs (redhatcop.redhat.io/v1alpha1).
+# sync-wave 3: runs after vault-init (wave 2) has created vault-init-credentials Secret.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-config-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://redhat-cop.github.io/vault-config-operator
+    chart: vault-config-operator
+    targetRevision: 0.8.21
+    helm:
+      values: |
+        replicaCount: 1
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault-config-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
