@@ -1,0 +1,30 @@
+# cert-manager ClusterIssuers, root CA Certificate, and VCO webhook Certificate CR.
+# wave 2: cert-manager (wave 0) must be Healthy. Runs in parallel with vault-init.
+# Creates the webhook-server-cert Secret in vault-config-operator namespace so that
+# VCO (wave 3) finds it on startup. cert-manager cainjector then maintains the CA
+# bundle in VCO's webhook configurations after the PostSync hook annotates them.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://github.com/MathTrail/infra
+    targetRevision: HEAD
+    path: manifests
+    directory:
+      include: "cert-manager-issuers.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

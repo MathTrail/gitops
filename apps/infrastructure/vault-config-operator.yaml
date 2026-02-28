@@ -1,6 +1,10 @@
 # Vault Config Operator (VCO) — Red Hat Community of Practice.
 # Manages Vault configuration declaratively via CRDs (redhatcop.redhat.io/v1alpha1).
-# sync-wave 3: runs after vault-init (wave 2) has created vault-init-credentials Secret.
+# wave 3: runs after vault-init (wave 2) and cert-manager-config (wave 2) have completed.
+#   - cert-manager-config creates webhook-server-cert Secret that VCO expects on startup.
+#   - PostSync hook (vco-cainjector-patch-job.yaml) annotates VCO webhook configurations
+#     with the cert-manager cainjector annotation and blocks until the CA bundle is injected,
+#     so wave 4 (VCO CRs) starts only when the webhook can validate them.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -10,20 +14,21 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   project: mathtrail
-  source:
-    repoURL: https://redhat-cop.github.io/vault-config-operator
-    chart: vault-config-operator
-    targetRevision: 0.8.21
-    helm:
-      values: |
-        replicaCount: 1
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+  sources:
+    - repoURL: https://redhat-cop.github.io/vault-config-operator
+      chart: vault-config-operator
+      targetRevision: 0.8.21
+      helm:
+        valueFiles:
+          - $values/infra/values/vault-config-operator-values.yaml
+    - repoURL: https://github.com/MathTrail/infra
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/MathTrail/infra
+      targetRevision: HEAD
+      path: manifests
+      directory:
+        include: "vco-cainjector-patch-job.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: vault-config-operator
