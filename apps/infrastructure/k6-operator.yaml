@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-k6-operator
+  namespace: argocd
+spec:
+  project: mathtrail
+  sources:
+    - repoURL: https://MathTrail.github.io/charts/charts
+      chart: k6-operator
+      targetRevision: 4.3.0
+      helm:
+        releaseName: k6-operator
+        valueFiles:
+          - $values/values/k6-operator-values.yaml
+    - repoURL: https://github.com/MathTrail/infra-testing
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: k6-operator-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
