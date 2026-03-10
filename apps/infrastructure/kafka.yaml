@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mathtrail-kafka
+  namespace: argocd
+spec:
+  project: mathtrail
+  source:
+    repoURL: https://github.com/MathTrail/infra-streaming
+    path: infra/local/helm/kafka
+    targetRevision: main
+    helm:
+      releaseName: kafka
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mathtrail-streaming
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true

@@ -5,5 +5,15 @@ resources:
   - ../../apps/services/profile.yaml
   - ../../apps/services/mentor.yaml
   - ../../apps/services/identity.yaml
+  - ../../apps/infrastructure/kafka.yaml
+  - ../../apps/infrastructure/k6-operator.yaml
+  - ../../apps/infrastructure/observability-base.yaml
+  - ../../apps/infrastructure/observability-loki.yaml
+  - ../../apps/infrastructure/observability-tempo.yaml
+  - ../../apps/infrastructure/observability-mimir.yaml
+  - ../../apps/infrastructure/observability-grafana.yaml
+  - ../../apps/infrastructure/observability-alloy.yaml
+  - ../../apps/infrastructure/observability-pyroscope.yaml
+  - ../../apps/infrastructure/observability-otel-collector.yaml
 
 # Cloud-specific patches will be added as services are deployed
